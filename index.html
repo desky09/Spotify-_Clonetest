@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Clone</title>
+    <!-- Load Tailwind CSS for modern, dark styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide icons for play controls and UI elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom font import (Inter is used by default with Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Custom scrollbar for main content area to look sleeker */
+        #main-content {
+            overflow-y: auto;
+        }
+        #main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #main-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        #main-content::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+        
+        /* Green accent color */
+        .spotify-green {
+            background-color: #1DB954;
+            color: #fff;
+        }
+        .spotify-green-text {
+            color: #1DB954;
+        }
+        /* Custom progress bar styles */
+        #progress-bar, #volume-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #4a4a4a;
+            border-radius: 4px;
+        }
+        #progress-bar::-webkit-slider-thumb, #volume-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            /* Only show thumb when hovering/active */
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #progress-bar:hover::-webkit-slider-thumb, #progress-bar:active::-webkit-slider-thumb, 
+        #volume-bar:hover::-webkit-slider-thumb, #volume-bar:active::-webkit-slider-thumb {
+            opacity: 1;
+            background: #1DB954;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col bg-black text-gray-100 antialiased">
+
+    <!-- 1. Main Layout: Sidebar, Content -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar (Left Panel) -->
+        <aside class="w-64 bg-black p-4 flex flex-col space-y-4 h-full hidden md:flex">
+            <!-- Navigation -->
+            <div class="bg-gray-900 p-4 rounded-lg space-y-4">
+                <a href="#" class="flex items-center text-lg font-bold hover:text-white transition duration-150">
+                    <i data-lucide="home" class="w-6 h-6 mr-3"></i> Home
+                </a>
+                <a href="#" class="flex items-center text-lg font-bold text-gray-400 hover:text-white transition duration-150">
+                    <i data-lucide="search" class="w-6 h-6 mr-3"></i> Search
+                </a>
+            </div>
+
+            <!-- Library -->
+            <div class="bg-gray-900 p-4 rounded-lg flex-1 overflow-y-auto space-y-4">
+                <div class="flex items-center text-lg font-bold text-gray-400">
+                    <i data-lucide="library" class="w-6 h-6 mr-3"></i> Your Library
+                </div>
+                <div class="space-y-2">
+                    <!-- Mock Playlist Item -->
+                    <div class="p-2 hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                        <p class="font-semibold text-sm">🔥 Discover Weekly</p>
+                        <p class="text-xs text-gray-400">Playlist • Spotify</p>
+                    </div>
+                    <div class="p-2 hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                        <p class="font-semibold text-sm">Focus Mode Jazz</p>
+                        <p class="text-xs text-gray-400">Playlist • 45 songs</p>
+                    </div>
+                    <div class="p-2 hover:bg-gray-800 rounded-lg cursor-pointer transition">
+                        <p class="font-semibold text-sm">Liked Songs</p>
+                        <p class="text-xs text-gray-400">Playlist • 120 songs</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="flex-1 bg-gray-900 rounded-lg m-2 p-6 overflow-y-auto">
+            <header class="mb-8 flex justify-between items-center sticky top-0 bg-gray-900/90 backdrop-blur-sm z-10 py-2">
+                <img src="spotify-logo-green-background-721x5rev4byd7t68.jpg" alt="Spotify Logo" class="h-12 w-auto">
+                <div class="flex space-x-4 items-center">
+                    <button class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                    </button>
+                    <button class="bg-gray-800 hover:bg-gray-700 p-2 rounded-full transition text-sm font-semibold">
+                        Install App
+                    </button>
+                    <button class="bg-black p-1 rounded-full">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Song List / Playlist View -->
+            <section id="song-list" class="space-y-4">
+                <h2 class="text-2xl font-bold mb-4">A Playlist for You</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Song Cards will be inserted here by JavaScript -->
+                </div>
+
+                <h2 class="text-2xl font-bold mt-12 mb-4">Recently Played Artists</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                    <!-- Artist Card Placeholder -->
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer text-center">
+                        <img class="w-full h-auto aspect-square object-cover rounded-full mb-3 shadow-xl" src="https://placehold.co/150x150/000000/FFFFFF?text=J.D." alt="Artist Placeholder">
+                        <p class="font-bold">John Doe</p>
+                        <p class="text-sm text-gray-400">Artist</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer text-center">
+                        <img class="w-full h-auto aspect-square object-cover rounded-full mb-3 shadow-xl" src="https://placehold.co/150x150/222222/FFFFFF?text=L.B." alt="Artist Placeholder">
+                        <p class="font-bold">Lana Banana</p>
+                        <p class="text-sm text-gray-400">Artist</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 2. Player Bar (Bottom Bar) -->
+    <footer class="h-24 bg-gray-800 border-t border-gray-700 flex items-center justify-between px-4 sm:px-6">
+        
+        <!-- Left: Current Song Info -->
+        <div class="flex items-center w-1/4 min-w-40">
+            <img id="player-album-art" class="w-14 h-14 rounded-md shadow-md mr-3" src="https://placehold.co/60x60/333333/ffffff?text=Album" alt="Album Art">
+            <div>
+                <p id="player-song-title" class="text-sm font-semibold">No song playing</p>
+                <p id="player-artist-name" class="text-xs text-gray-400">Select a track</p>
+                
+                <!-- GEMINI FEATURES -->
+                <div class="flex space-x-2 mt-1">
+                    <button id="vibe-check-btn" class="text-xs font-semibold px-2 py-1 bg-gray-700 rounded-full hover:bg-gray-600 transition disabled:opacity-50" disabled>
+                        ✨ Vibe Check
+                    </button>
+                    <button id="tts-announce-btn" class="text-xs font-semibold px-2 py-1 bg-gray-700 rounded-full hover:bg-gray-600 transition disabled:opacity-50" disabled>
+                        🗣️ TTS Announce
+                    </button>
+                </div>
+                <!-- END GEMINI FEATURES -->
+            </div>
+            <button class="text-gray-400 hover:text-white ml-4 hidden sm:block">
+                <i data-lucide="heart" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Center: Controls and Progress -->
+        <div class="flex flex-col items-center justify-center w-2/4 max-w-lg">
+            
+            <!-- Controls (Shuffle, Prev, Play/Pause, Next, Repeat) -->
+            <div class="flex items-center space-x-6 mb-2">
+                <button class="text-gray-400 hover:text-white" title="Shuffle">
+                    <i data-lucide="shuffle" class="w-4 h-4"></i>
+                </button>
+                <button id="prev-btn" class="text-white hover:text-gray-300" title="Previous">
+                    <i data-lucide="skip-back" class="w-5 h-5"></i>
+                </button>
+                <button id="play-pause-btn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg" title="Play">
+                    <i id="play-pause-icon" data-lucide="play" class="w-5 h-5 fill-current"></i>
+                </button>
+                <button id="next-btn" class="text-white hover:text-gray-300" title="Next">
+                    <i data-lucide="skip-forward" class="w-5 h-5"></i>
+                </button>
+                <button class="text-gray-400 hover:text-white" title="Repeat">
+                    <i data-lucide="repeat" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="flex items-center w-full space-x-2 text-xs text-gray-400">
+                <span id="current-time">0:00</span>
+                <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full h-1 appearance-none bg-gray-600 rounded-lg cursor-pointer">
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <!-- Right: Volume and Additional Controls -->
+        <div class="flex items-center justify-end w-1/4 space-x-4 min-w-32">
+            <button class="text-gray-400 hover:text-white hidden lg:block">
+                <i data-lucide="mic-2" class="w-4 h-4"></i>
+            </button>
+            <button class="text-gray-400 hover:text-white hidden lg:block">
+                <i data-lucide="queue-list" class="w-4 h-4"></i>
+            </button>
+            <button id="volume-icon-btn" class="text-gray-400 hover:text-white">
+                <i data-lucide="volume-2" id="volume-icon" class="w-4 h-4"></i>
+            </button>
+            <!-- Volume Slider -->
+            <input type="range" id="volume-bar" min="0" max="100" value="70" class="w-24 h-1 appearance-none bg-gray-600 rounded-lg cursor-pointer hidden md:block">
+        </div>
+    </footer>
+
+    <!-- Modal for Vibe Check Results / Loading -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50 transition-opacity duration-300" onclick="hideModal()">
+        <div class="bg-gray-800 p-6 rounded-xl max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                <h3 id="modal-title" class="text-xl font-bold text-spotify-green-text">Song Vibe Check Results</h3>
+                <button class="text-gray-400 hover:text-white" onclick="hideModal()">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="modal-content" class="text-gray-300 space-y-4">
+                <!-- Content inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. JavaScript Logic -->
+    <script>
+        // --- GEMINI API Setup ---
+        const apiKey = ""; 
+        // We will use two models: gemini-2.5-flash-preview-09-2025 for text, and gemini-2.5-flash-preview-tts for audio.
+        const LLM_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+        
+        // --- STEP 1: Define Mock Song Data and Core Elements ---
+
+        // Mock data.
+        const songs = [
+            { id: 0, title: "Lounge Chillout", artist: "Lo-Fi Master", album: "Relax Collection", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", cover: "unnamed.png" },
+            { id: 1, title: "Driving Energy", artist: "DJ Code", album: "Synthwave Nights", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", cover: "unnamed.png" },
+            { id: 2, title: "Acoustic Reflection", artist: "The Frontend Band", album: "Unplugged Sessions", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", cover: "unnamed.png" },
+            { id: 3, title: "Happy Ukulele", artist: "Island Tunes", album: "Tropical Vibes", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", cover: "unnamed.png" },
+            { id: 4, title: "Dhundhala", artist: "Yashraj", album: "Unknown Album", src: "Dhundhala Yashraj 128 Kbps.mp3", cover: "artworks-xGpjE7N7yey2nQ80-y89tow-t500x500.jpg" },
+            { id: 5, title: "4AM in Karachi", artist: "Unknown Artist", album: "Unknown Album", src: "4AM_in_Karachi.mp3", cover: "karachi 4am.jpg" },
+            { id: 6, title: "Haule Haule Rab Ne Bana Di Jodi", artist: "Unknown Artist", album: "Unknown Album", src: "Haule Haule Rab Ne Bana Di Jodi 128 Kbps.mp3", cover: "download.jpg" },
+        ];
+
+        // Core HTML elements
+        const audio = new Audio();
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const volumeBar = document.getElementById('volume-bar');
+        const volumeIcon = document.getElementById('volume-icon');
+        const songListContainer = document.querySelector('#song-list > div');
+        const playerTitle = document.getElementById('player-song-title');
+        const playerArtist = document.getElementById('player-artist-name');
+        const playerAlbumArt = document.getElementById('player-album-art');
+        
+        // Gemini UI elements
+        const vibeCheckBtn = document.getElementById('vibe-check-btn');
+        const ttsAnnounceBtn = document.getElementById('tts-announce-btn');
+        const resultModal = document.getElementById('result-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+
+        let currentSongIndex = -1;
+        let isPlaying = false;
+        let isVibeChecking = false;
+
+        // --- Utility Functions for TTS (PCM to WAV conversion) ---
+
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const writeInt32 = (dataView, offset, value) => {
+            dataView.setUint32(offset, value, true);
+        };
+
+        const writeInt16 = (dataView, offset, value) => {
+            dataView.setUint16(offset, value, true);
+        };
+
+        const pcmToWav = (pcm16, sampleRate) => {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const numSamples = pcm16.length;
+            const dataSize = numSamples * numChannels * (bitsPerSample / 8);
+
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+            
+            // RIFF chunk
+            view.setUint8(0, 'R'.charCodeAt(0)); view.setUint8(1, 'I'.charCodeAt(0)); 
+            view.setUint8(2, 'F'.charCodeAt(0)); view.setUint8(3, 'F'.charCodeAt(0));
+            writeInt32(view, 4, 36 + dataSize);
+            view.setUint8(8, 'W'.charCodeAt(0)); view.setUint8(9, 'A'.charCodeAt(0)); 
+            view.setUint8(10, 'V'.charCodeAt(0)); view.setUint8(11, 'E'.charCodeAt(0));
+
+            // fmt chunk
+            view.setUint8(12, 'f'.charCodeAt(0)); view.setUint8(13, 'm'.charCodeAt(0)); 
+            view.setUint8(14, 't'.charCodeAt(0)); view.setUint8(15, ' '.charCodeAt(0));
+            writeInt32(view, 16, 16);
+            writeInt16(view, 20, 1);
+            writeInt16(view, 22, numChannels);
+            writeInt32(view, 24, sampleRate);
+            writeInt32(view, 28, numChannels * sampleRate * (bitsPerSample / 8));
+            writeInt16(view, 32, numChannels * (bitsPerSample / 8));
+            writeInt16(view, 34, bitsPerSample);
+            
+            // data chunk
+            view.setUint8(36, 'd'.charCodeAt(0)); view.setUint8(37, 'a'.charCodeAt(0)); 
+            view.setUint8(38, 't'.charCodeAt(0)); view.setUint8(39, 'a'.charCodeAt(0));
+            writeInt32(view, 40, dataSize);
+
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < numSamples; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        };
+
+
+        // --- Helper Functions ---
+
+        /**
+         * Formats seconds into M:SS string.
+         * @param {number} seconds 
+         * @returns {string}
+         */
+        const formatTime = (seconds) => {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        };
+
+        /**
+         * Generic fetch function with exponential backoff for retries.
+         */
+        const fetchWithRetry = async (url, options, maxRetries = 5) => {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status === 429 && i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw new Error(`API call failed with status: ${response.status} ${response.statusText}`);
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        console.warn(`Fetch error: ${error.message}. Retrying in ${delay / 1000}s...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+        };
+
+        // --- Modal Control ---
+        const showModal = (title, contentHTML) => {
+            modalTitle.textContent = title;
+            modalContent.innerHTML = contentHTML;
+            resultModal.classList.remove('hidden');
+            resultModal.classList.add('flex');
+            // Re-render Lucide icons inside modal if needed
+            lucide.createIcons();
+        };
+
+        const hideModal = () => {
+            resultModal.classList.remove('flex');
+            resultModal.classList.add('hidden');
+        };
+
+
+        /**
+         * Renders the mock song cards into the main content area.
+         */
+        const renderSongList = () => {
+            songListContainer.innerHTML = '';
+            songs.forEach((song, index) => {
+                const card = document.createElement('div');
+                card.id = `song-card-${index}`;
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer group';
+                card.innerHTML = `
+                    <div class="relative">
+                        <img class="w-full h-auto aspect-square object-cover rounded-md mb-4 shadow-xl" src="${song.cover}" alt="${song.title} Album Art">
+                        <!-- Play button overlay -->
+                        <button class="absolute bottom-4 right-4 w-12 h-12 bg-spotify-green text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-2xl" onclick="playSong(${index}); event.stopPropagation();">
+                            <i data-lucide="play" class="w-6 h-6 fill-current ml-1"></i>
+                        </button>
+                    </div>
+                    <p class="font-bold truncate">${song.title}</p>
+                    <p class="text-sm text-gray-400 truncate">${song.artist}</p>
+                `;
+                // Add click listener to the card itself to play
+                card.onclick = () => playSong(index);
+                songListContainer.appendChild(card);
+            });
+            // Re-render Lucide icons after adding new HTML content
+            lucide.createIcons();
+        };
+
+        // --- STEP 2: Playback Logic (Play, Pause, Load) ---
+
+        /**
+         * Loads and plays a specific song by its index.
+         * @param {number} index - Index of the song in the 'songs' array.
+         */
+        window.playSong = (index) => {
+            if (index === currentSongIndex && isPlaying) {
+                // If the same song is clicked and is playing, pause it.
+                pauseTrack();
+                return;
+            } else if (index === currentSongIndex && !isPlaying) {
+                // If the same song is clicked and is paused, resume it.
+                playTrack();
+                return;
+            }
+
+            // Load a new song
+            currentSongIndex = index;
+            const song = songs[currentSongIndex];
+            
+            audio.src = song.src;
+            playerTitle.textContent = song.title;
+            playerArtist.textContent = song.artist;
+            playerAlbumArt.src = song.cover;
+            
+            // Wait for metadata to load to get the duration
+            audio.onloadedmetadata = () => {
+                progressBar.max = audio.duration;
+                durationEl.textContent = formatTime(audio.duration);
+                playTrack();
+                // Enable Gemini buttons once a song is loaded
+                vibeCheckBtn.disabled = false;
+                ttsAnnounceBtn.disabled = false;
+            };
+
+            // Reset progress bar visually while loading
+            progressBar.value = 0;
+            currentTimeEl.textContent = '0:00';
+            
+            // Update active song highlight
+            document.querySelectorAll('[id^="song-card-"]').forEach(el => el.classList.remove('border-2', 'border-spotify-green', 'bg-gray-700'));
+            const activeCard = document.getElementById(`song-card-${index}`);
+            if (activeCard) {
+                activeCard.classList.add('border-2', 'border-spotify-green', 'bg-gray-700');
+            }
+        };
+
+        const playTrack = () => {
+            if (currentSongIndex === -1) {
+                playSong(0);
+                return;
+            }
+            audio.play().catch(e => console.error("Error playing audio (Did you click to start playback?):", e));
+            isPlaying = true;
+            playPauseIcon.setAttribute('data-lucide', 'pause');
+            lucide.createIcons();
+        };
+
+        const pauseTrack = () => {
+            audio.pause();
+            isPlaying = false;
+            playPauseIcon.setAttribute('data-lucide', 'play');
+            lucide.createIcons();
+        };
+
+        const nextTrack = () => {
+            const nextIndex = (currentSongIndex + 1) % songs.length;
+            playSong(nextIndex);
+        };
+
+        const prevTrack = () => {
+            const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            playSong(prevIndex);
+        };
+
+        // --- STEP 3: GEMINI API Integrations ---
+
+        /**
+         * Generates a "Vibe Check" summary of the current song using Gemini with Google Search grounding.
+         */
+        const generateSongVibeCheck = async () => {
+            if (currentSongIndex === -1 || isVibeChecking) return;
+
+            isVibeChecking = true;
+            vibeCheckBtn.disabled = true;
+            vibeCheckBtn.textContent = 'Checking Vibe...';
+            
+            const song = songs[currentSongIndex];
+            const query = `Find the main genre, mood, and one interesting fact about the song "${song.title}" by "${song.artist}". Provide a concise, friendly summary.`;
+            
+            showModal('✨ Song Vibe Check', `
+                <div class="flex items-center space-x-3 text-lg font-semibold text-white">
+                    <i data-lucide="loader-circle" class="w-6 h-6 animate-spin"></i>
+                    <span>Searching for the vibe of: ${song.title}</span>
+                </div>
+            `);
+
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: "You are a friendly music AI. Provide a concise, single-paragraph summary of the song's genre, mood, and one interesting piece of trivia or fact. Keep the response engaging." }]
+                },
+            };
+
+            try {
+                const response = await fetchWithRetry(LLM_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                let summaryHTML = `<p class="text-lg mb-4">${song.title} by ${song.artist}</p>`;
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    summaryHTML += `<div class="bg-gray-900 p-4 rounded-lg shadow-inner">${text}</div>`;
+
+                    // Extract grounding sources
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        const sources = groundingMetadata.groundingAttributions
+                            .map(attribution => ({
+                                uri: attribution.web?.uri,
+                                title: attribution.web?.title,
+                            }))
+                            .filter(source => source.uri && source.title);
+
+                        if (sources.length > 0) {
+                            summaryHTML += `<p class="mt-4 text-xs text-gray-500">Grounded in web knowledge:</p>`;
+                            sources.slice(0, 3).forEach(source => {
+                                summaryHTML += `<a href="${source.uri}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 block truncate" title="${source.title}">${source.title}</a>`;
+                            });
+                        }
+                    }
+                } else {
+                    summaryHTML += '<p class="text-red-400">Sorry, I couldn\'t find enough information for that Vibe Check.</p>';
+                }
+
+                showModal('✨ Song Vibe Check Results', summaryHTML);
+
+            } catch (error) {
+                console.error("Gemini Vibe Check Error:", error);
+                showModal('Error', '<p class="text-red-400">An error occurred while performing the Vibe Check. Please check the console for details.</p>');
+            } finally {
+                isVibeChecking = false;
+                vibeCheckBtn.disabled = (currentSongIndex === -1);
+                vibeCheckBtn.textContent = '✨ Vibe Check';
+            }
+        };
+
+        /**
+         * Generates and plays a TTS announcement for the current song.
+         */
+        const generateTTSAnnounce = async () => {
+            if (currentSongIndex === -1 || audio.isSpeaking) return;
+
+            audio.isSpeaking = true;
+            ttsAnnounceBtn.disabled = true;
+            ttsAnnounceBtn.textContent = 'Speaking...';
+
+            const song = songs[currentSongIndex];
+            const prompt = `Say cheerfully: Now playing, ${song.title} by ${song.artist}. Enjoy this track!`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" } // A clear, firm voice
+                        }
+                    }
+                },
+            };
+
+            try {
+                const response = await fetchWithRetry(TTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    // Extract sample rate (e.g., audio/L16;rate=24000)
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    // API returns signed PCM16 audio data.
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const ttsAudio = new Audio(audioUrl);
+                    ttsAudio.play();
+                    ttsAudio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        audio.isSpeaking = false;
+                        ttsAnnounceBtn.disabled = (currentSongIndex === -1);
+                        ttsAnnounceBtn.textContent = '🗣️ TTS Announce';
+                    };
+                } else {
+                    throw new Error("TTS API did not return valid audio data.");
+                }
+
+            } catch (error) {
+                console.error("Gemini TTS Error:", error);
+                // Fail silently for TTS to avoid disrupting playback too much
+            } finally {
+                if (audio.isSpeaking) {
+                    // Only run if the onended handler didn't clear it
+                    audio.isSpeaking = false;
+                    ttsAnnounceBtn.disabled = (currentSongIndex === -1);
+                    ttsAnnounceBtn.textContent = '🗣️ TTS Announce';
+                }
+            }
+        };
+
+        // --- STEP 4: Event Listeners and Audio Control ---
+
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseTrack();
+            } else {
+                playTrack();
+            }
+        });
+
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+        vibeCheckBtn.addEventListener('click', generateSongVibeCheck);
+        ttsAnnounceBtn.addEventListener('click', generateTTSAnnounce);
+
+        // Update progress bar and time display as the song plays
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.seeking) {
+                progressBar.value = audio.currentTime;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            }
+        });
+
+        // Skip to a position when the user drags the progress bar
+        progressBar.addEventListener('input', () => {
+            audio.currentTime = progressBar.value;
+        });
+
+        // When a song ends, play the next track
+        audio.addEventListener('ended', nextTrack);
+
+        // Volume control
+        volumeBar.addEventListener('input', (e) => {
+            audio.volume = e.target.value / 100;
+            updateVolumeIcon(audio.volume);
+        });
+        
+        // Initial volume setting
+        audio.volume = volumeBar.value / 100;
+
+        // Toggle mute when volume icon is clicked
+        let lastVolume = audio.volume;
+        document.getElementById('volume-icon-btn').addEventListener('click', () => {
+            if (audio.volume > 0) {
+                lastVolume = audio.volume;
+                audio.volume = 0;
+                volumeBar.value = 0;
+            } else {
+                audio.volume = lastVolume > 0.05 ? lastVolume : 0.7; // Restore or set to 70%
+                volumeBar.value = audio.volume * 100;
+            }
+            updateVolumeIcon(audio.volume);
+        });
+
+        const updateVolumeIcon = (volume) => {
+            let iconName = 'volume-2';
+            if (volume === 0) {
+                iconName = 'volume-x';
+            } else if (volume < 0.5) {
+                iconName = 'volume-1';
+            }
+            volumeIcon.setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+        };
+
+        // --- STEP 5: Initialization ---
+
+        // Initialize the player once the DOM is ready
+        window.onload = () => {
+            renderSongList();
+            updateVolumeIcon(audio.volume);
+        };
+
+    </script>
+</body>
+</html>
